@@ -56,6 +56,10 @@ def generar_archivos():
                 # Itera sobre todos los códigos y precios al mismo tiempo
                  for i, (code, price) in enumerate(zip(codes, prices)):
                     if i < len(codes) - 1:  # Verifica si no es la última línea
+                        """ print(str(code).rstrip(".0"))
+                        print(str(code))
+                        print(int(code))
+                        print("@@@@@@@@@@@@@@@") """
                         f.write(str(code) + ';' + str(price) + ';' + '\n')  # Escribe el código y el precio con un salto de línea
                     else:
                         f.write(str(code) + ';' + str(price) + ';') 
