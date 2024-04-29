@@ -45,30 +45,30 @@ def mostrar_descuentos():
     messagebox.showinfo("Control opciones de Descuento", "\n".join(descuentos_sorted))  # Mostrar las opciones en una ventana emergente
         
 # Función para generar archivos de texto
-"""     
+    
 def writeNormal(discount, codes, observaciones):
-    with open(f'content/{discount}_discount.txt', 'w') as f:
+    with open(f'content/{discount}_discount.txt', 'w') as f_main, open(f'content/{discount}_observaciones.txt', 'w') as f_obs:
     # Itera sobre todos los códigos excepto el último
         for i, (code, observacion) in enumerate(zip(codes, observaciones)):
             if i < len(codes) - 1:  # Verifica si no es la última línea
                 if not pd.isnull(observacion):
-                    f.write(str(code).rstrip(".0") + ';' + str(observacion) + ';' + '\n') # Escribe el código y el precio con un salto de línea
+                    f_obs.write(str(code).rstrip(".0") + ';' + '\n') # Escribe el código y el precio con un salto de línea
                 else:
-                    f.write(str(code).rstrip(".0") + ';' + '\n') 
+                    f_main.write(str(code).rstrip(".0") + ';' + '\n') 
             else:
                 if not pd.isnull(observacion):
-                    f.write(str(code).rstrip(".0") + ';' + str(observacion) + ';')   
+                    f_obs.write(str(code).rstrip(".0") + ';' )   
                 else:
-                    f.write(str(code).rstrip(".0") + ';')   
-                     """
+                    f_main.write(str(code).rstrip(".0") + ';')   
+                    
     
-def writeNormal(discount, codes, observaciones):
+""" def writeNormal(discount, codes, observaciones):
     with open(f'content/{discount}_discount.txt', 'w') as f_main, open(f'content/{discount}_observaciones.txt', 'w') as f_obs:
         for i, (code, observacion) in enumerate(zip(codes, observaciones)):
             if not pd.isnull(observacion):
                 f_obs.write(f'{code};{observacion}\n')  # Guardar observaciones en archivo separado
             else:
-                f_main.write(f'{code}\n')  # Guardar códigos en archivo principal
+                f_main.write(f'{code}\n')  # Guardar códigos en archivo principal """
 
 def writePrecioFijo(df_filtered, codes):
     prices = df_filtered['Precios fijos'].tolist()
@@ -76,7 +76,6 @@ def writePrecioFijo(df_filtered, codes):
         # Itera sobre todos los códigos y precios al mismo tiempo
             for i, (code, price) in enumerate(zip(codes, prices)):
                 if i < len(codes) - 1:  # Verifica si no es la última línea
-                    """ print(str(code).rstrip(".0")) """
                     f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';' + '\n') # Escribe el código y el precio con un salto de línea
                 else:
                     f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';')   
