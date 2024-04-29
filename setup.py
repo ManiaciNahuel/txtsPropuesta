@@ -45,43 +45,70 @@ def mostrar_descuentos():
     messagebox.showinfo("Control opciones de Descuento", "\n".join(descuentos_sorted))  # Mostrar las opciones en una ventana emergente
         
 # Función para generar archivos de texto
+"""     
+def writeNormal(discount, codes, observaciones):
+    with open(f'content/{discount}_discount.txt', 'w') as f:
+    # Itera sobre todos los códigos excepto el último
+        for i, (code, observacion) in enumerate(zip(codes, observaciones)):
+            if i < len(codes) - 1:  # Verifica si no es la última línea
+                if not pd.isnull(observacion):
+                    f.write(str(code).rstrip(".0") + ';' + str(observacion) + ';' + '\n') # Escribe el código y el precio con un salto de línea
+                else:
+                    f.write(str(code).rstrip(".0") + ';' + '\n') 
+            else:
+                if not pd.isnull(observacion):
+                    f.write(str(code).rstrip(".0") + ';' + str(observacion) + ';')   
+                else:
+                    f.write(str(code).rstrip(".0") + ';')   
+                     """
+    
+def writeNormal(discount, codes, observaciones):
+    with open(f'content/{discount}_discount.txt', 'w') as f_main, open(f'content/{discount}_observaciones.txt', 'w') as f_obs:
+        for i, (code, observacion) in enumerate(zip(codes, observaciones)):
+            if not pd.isnull(observacion):
+                f_obs.write(f'{code};{observacion}\n')  # Guardar observaciones en archivo separado
+            else:
+                f_main.write(f'{code}\n')  # Guardar códigos en archivo principal
+
+def writePrecioFijo(df_filtered, codes):
+    prices = df_filtered['Precios fijos'].tolist()
+    with open(f'content/PrecioFijoConPrecio_discount.txt', 'w') as f:
+        # Itera sobre todos los códigos y precios al mismo tiempo
+            for i, (code, price) in enumerate(zip(codes, prices)):
+                if i < len(codes) - 1:  # Verifica si no es la última línea
+                    """ print(str(code).rstrip(".0")) """
+                    f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';' + '\n') # Escribe el código y el precio con un salto de línea
+                else:
+                    f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';')   
+ 
+
 def generar_archivos():
+            
     for discount in df['Descuento mostrador'].unique():
         df_filtered = df[df['Descuento mostrador'] == discount]
         codes = df_filtered['Codebar'].tolist()
+        observaciones = df_filtered['Duracion propuesta'].tolist()
         
         if discount == "Precio Fijo":
-            prices = df_filtered['Precios fijos'].tolist()
-            with open(f'content/PrecioFijoConPrecio_discount.txt', 'w') as f:
-                # Itera sobre todos los códigos y precios al mismo tiempo
-                 for i, (code, price) in enumerate(zip(codes, prices)):
-                    if i < len(codes) - 1:  # Verifica si no es la última línea
-                        """ print(str(code).rstrip(".0"))
-                        print(str(code))
-                        print(int(code))
-                        print("@@@@@@@@@@@@@@@") """
-                        f.write(str(code) + ';' + str(price) + ';' + '\n')  # Escribe el código y el precio con un salto de línea
-                    else:
-                        f.write(str(code) + ';' + str(price) + ';') 
-            with open(f'content/{discount}_discount.txt', 'w') as f:
-            # Itera sobre todos los códigos excepto el último
-                for code in codes[:-1]:
-                    f.write(str(code) + ';' + '\n')
-
-                # Escribe el último código sin añadir una nueva línea al final
-                if codes:  # Verifica si la lista codes no está vacía
-                    f.write(str(codes[-1]) + ';')
-
+            # Se crean dos txts, uno solo con los codigos de barra y otro con los codigos y los precios
+            writeNormal(discount, codes, observaciones)
+            writePrecioFijo(df_filtered, codes) 
         else:
-            with open(f'content/{discount}_discount.txt', 'w') as f:
-            # Itera sobre todos los códigos excepto el último
-                for code in codes[:-1]:
-                    f.write(str(code) + ';' + '\n')
-
-                # Escribe el último código sin añadir una nueva línea al final
-                if codes:  # Verifica si la lista codes no está vacía
-                    f.write(str(codes[-1]) + ';')
-
+            writeNormal(discount, codes, observaciones)
+            
+def generar_archivos2():
+    for discount in df['Descuento mostrador'].unique():
+        df_filtered = df[df['Descuento mostrador'] == discount]
+        codes = df_filtered['Codebar'].tolist()
+        observaciones = df_filtered['Duracion propuesta'].tolist()
+        
+        
+        if discount == "Precio Fijo":
+            # Se crean dos txts, uno solo con los codigos de barra y otro con los codigos y los precios
+            writeNormal(discount, codes)
+            writePrecioFijo(df_filtered, codes) 
+        else:
+            writeNormal(discount, codes)
 
 # Función para eliminar archivos de texto
 def eliminar_archivos():
