@@ -23,9 +23,17 @@ discount_map = {
 # Función para cargar el archivo Excel
 def cargar_excel():
     global df
-    file_path = filedialog.askopenfilename()
-    df = pd.read_excel(file_path)
-
+    file_path = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx")])
+    if file_path:
+        try:
+            df = pd.read_excel(file_path)
+            tk.messagebox.showinfo("Información", "Archivo cargado con exito.")
+            
+        except Exception as e:
+            tk.messagebox.showerror("Error", "No se pudo cargar el archivo Excel. Asegúrate de seleccionar un archivo válido.")
+            return
+    else:
+        tk.messagebox.showinfo("Información", "No se ha seleccionado ningún archivo.")
 
 # Función para mostrar las opciones de descuento
 def mostrar_descuentos():
@@ -44,42 +52,76 @@ def mostrar_descuentos():
     descuentos_sorted = sorted(descuentos_str)
     messagebox.showinfo("Control opciones de Descuento", "\n".join(descuentos_sorted))  # Mostrar las opciones en una ventana emergente
         
+        
 # Función para generar archivos de texto
-    
-def writeNormal(discount, codes, observaciones):
-    with open(f'content/{discount}_discount.txt', 'w') as f_main, open(f'content/{discount}_observaciones.txt', 'w') as f_obs:
-    # Itera sobre todos los códigos excepto el último
-        for i, (code, observacion) in enumerate(zip(codes, observaciones)):
-            if i < len(codes) - 1:  # Verifica si no es la última línea
-                if not pd.isnull(observacion):
-                    f_obs.write(str(code).rstrip(".0") + ';' + '\n') # Escribe el código y el precio con un salto de línea
-                else:
-                    f_main.write(str(code).rstrip(".0") + ';' + '\n') 
-            else:
-                if not pd.isnull(observacion):
-                    f_obs.write(str(code).rstrip(".0") + ';' )   
-                else:
-                    f_main.write(str(code).rstrip(".0") + ';')   
-                    
-    
-""" def writeNormal(discount, codes, observaciones):
-    with open(f'content/{discount}_discount.txt', 'w') as f_main, open(f'content/{discount}_observaciones.txt', 'w') as f_obs:
-        for i, (code, observacion) in enumerate(zip(codes, observaciones)):
-            if not pd.isnull(observacion):
-                f_obs.write(f'{code};{observacion}\n')  # Guardar observaciones en archivo separado
-            else:
-                f_main.write(f'{code}\n')  # Guardar códigos en archivo principal """
+def writeNormal(discount, codes, observaciones, productos):
+    nan_products = set()  # Utilizamos un conjunto para evitar duplicados
 
-def writePrecioFijo(df_filtered, codes):
-    prices = df_filtered['Precios fijos'].tolist()
+    with open(f'content/{discount}_discount.txt', 'w') as f_main:
+        observation_files = {}  # Diccionario para almacenar los archivos de observaciones
+
+        for i, (code, observacion, producto) in enumerate(zip(codes, observaciones, productos)):
+            if pd.notnull(code):
+                # Verifica si no es la última línea del mismo tipo de descuento y observación
+                if i < len(codes) - 1 and observaciones[i] == observaciones[i+1]:
+                    # Si hay una observación no nula
+                    if not pd.isnull(observacion):
+                        if observacion not in observation_files:
+                            observation_files[observacion] = open(f'content/{discount}_{observacion}.txt', 'w')
+                        observation_files[observacion].write(str(int(code)) + ';' + '\n')
+                    else:
+                        # Escribe el código en el archivo principal
+                        f_main.write(str(int(code)) + ';' + '\n')
+                else:
+                    # Si es el último del tipo de descuento y observación
+                    if not pd.isnull(observacion):
+                        if observacion not in observation_files:
+                            observation_files[observacion] = open(f'content/{discount}_{observacion}.txt', 'w')
+                        observation_files[observacion].write(str(int(code)) + ';')
+                    else:
+                        # Escribe el código en el archivo principal
+                        f_main.write(str(int(code)) + ';')
+            else:
+                nan_products.add(producto)
+
+        # Cerrar los archivos de observaciones
+        for file in observation_files.values():
+            file.close()
+
+    if nan_products:
+        root = tk.Tk()
+        root.withdraw()
+        message = "El archivo tiene celdas importantes vacías en los siguientes productos:\n"
+        for product in nan_products:
+            message += f"{product}\n"
+        messagebox.showinfo("Advertencia", message)
+
+def writePrecioFijo(prices, codes, productos):
+    has_empty_cell = False 
+    nan_codes = [] 
+    
+    
     with open(f'content/PrecioFijoConPrecio_discount.txt', 'w') as f:
         # Itera sobre todos los códigos y precios al mismo tiempo
-            for i, (code, price) in enumerate(zip(codes, prices)):
+        for i, (code, price, producto) in enumerate(zip(codes, prices, productos)):
+            if pd.notnull(price) or pd.notnull(code):
                 if i < len(codes) - 1:  # Verifica si no es la última línea
                     f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';' + '\n') # Escribe el código y el precio con un salto de línea
                 else:
                     f.write(str(code).rstrip(".0") + ';' + str(int(price)) + ';')   
- 
+            else: 
+                has_empty_cell = True
+                nan_codes.append(producto)
+    if has_empty_cell:
+        # Muestra el mensaje de advertencia si hay una celda vacía
+        root = tk.Tk()
+        root.withdraw()  # Oculta la ventana principal de Tkinter
+        message = "El archivo tiene una celda importante vacía en los siguientes códigos:\n"
+        for code in set(nan_codes):
+            message += f"{code}\n"
+        messagebox.showinfo("Advertencia", message)
+
+
 
 def generar_archivos():
             
@@ -87,27 +129,17 @@ def generar_archivos():
         df_filtered = df[df['Descuento mostrador'] == discount]
         codes = df_filtered['Codebar'].tolist()
         observaciones = df_filtered['Duracion propuesta'].tolist()
+        productos = df_filtered['Producto'].tolist()
+        precios = df_filtered['Precios fijos'].tolist()
         
         if discount == "Precio Fijo":
             # Se crean dos txts, uno solo con los codigos de barra y otro con los codigos y los precios
-            writeNormal(discount, codes, observaciones)
-            writePrecioFijo(df_filtered, codes) 
+            writeNormal(discount, codes, observaciones, productos)
+            writePrecioFijo(precios, codes, productos) 
         else:
-            writeNormal(discount, codes, observaciones)
+            writeNormal(discount, codes, observaciones, productos)
             
-def generar_archivos2():
-    for discount in df['Descuento mostrador'].unique():
-        df_filtered = df[df['Descuento mostrador'] == discount]
-        codes = df_filtered['Codebar'].tolist()
-        observaciones = df_filtered['Duracion propuesta'].tolist()
-        
-        
-        if discount == "Precio Fijo":
-            # Se crean dos txts, uno solo con los codigos de barra y otro con los codigos y los precios
-            writeNormal(discount, codes)
-            writePrecioFijo(df_filtered, codes) 
-        else:
-            writeNormal(discount, codes)
+    tk.messagebox.showinfo("Éxito", "Los archivos se han creado correctamente.")
 
 # Función para eliminar archivos de texto
 def eliminar_archivos():
@@ -116,6 +148,8 @@ def eliminar_archivos():
     for file in files:
         file_path = os.path.join(folder_path, file)  # Ruta completa del archivo a eliminar
         os.remove(file_path)
+        
+    tk.messagebox.showinfo("Éxito", "Archivos txt de la carpeta content eliminados con exito.")
 
 # Función para cambiar el cursor al pasar sobre un botón
 def cambiar_cursor(event):
