@@ -23,8 +23,16 @@ discount_map = {
 # Función para cargar el archivo Excel
 def cargar_excel():
     global df
-    file_path = filedialog.askopenfilename()
-    df = pd.read_excel(file_path)
+    file_path = filedialog.askopenfilename(filetypes=[("Archivos Excel", "*.xlsx")])
+    if file_path:
+        try:
+            df = pd.read_excel(file_path)
+            messagebox.showinfo("Información", "Archivo cargado con éxito.")
+        except Exception as e:
+            messagebox.showerror("Error", "No se pudo cargar el archivo Excel. Asegúrate de seleccionar un archivo válido.")
+            return
+    else:
+        messagebox.showinfo("Información", "No se ha seleccionado ningún archivo.")
 
 
 # Función para mostrar las opciones de descuento
