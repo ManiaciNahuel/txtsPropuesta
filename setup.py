@@ -125,6 +125,7 @@ def generar_archivos():
             writePrecioFijo(df_filtered, codes, productos) 
         else:
             writeNormal(discount, codes, observaciones, productos)
+    tk.messagebox.showinfo("Éxito", "Los archivos se han CREADO correctamente.")
 
 # Función para eliminar archivos de texto
 def eliminar_archivos():
@@ -133,6 +134,8 @@ def eliminar_archivos():
     for file in files:
         file_path = os.path.join(folder_path, file)  # Ruta completa del archivo a eliminar
         os.remove(file_path)
+    tk.messagebox.showinfo("Éxito", "Los archivos se han ELIMINADO correctamente.")
+    
 
 # Función para cambiar el cursor al pasar sobre un botón
 def cambiar_cursor(event):
