@@ -54,59 +54,77 @@ def mostrar_descuentos():
         
 # Función para generar archivos de texto
     
-def writeNormal(discount, codes, observaciones):
+def writeNormal(discount, codes, observaciones, productos):
+    nan_products = set() 
+    
     main_file_path = f'content/{discount}_discount.txt'
     obs_file_path = f'content/{discount}_observaciones.txt'
     
     with open(main_file_path, 'w') as f_main, open(obs_file_path, 'w') as f_obs:
     # Itera sobre todos los códigos excepto el último
-        for i, (code, observacion) in enumerate(zip(codes, observaciones)):
-            if not pd.isnull(observacion):
-                if i < len(codes) - 1:
-                    f_obs.write(f'{code};\n')
+        for i, (code, observacion, producto) in enumerate(zip(codes, observaciones, productos)):
+            if pd.notnull(code):
+                if not pd.isnull(observacion):
+                    if i < len(codes) - 1:
+                        f_obs.write(f'{code};\n')
+                    else:
+                        f_obs.write(f'{code};')
                 else:
-                    f_obs.write(f'{code};')
+                    if i < len(codes) - 1:
+                        f_main.write(f'{code};\n')
+                    else:
+                        f_main.write(f'{code};')
             else:
-                if i < len(codes) - 1:
-                    f_main.write(f'{code};\n')
-                else:
-                    f_main.write(f'{code};')
+                nan_products.add(producto)
     
     # Eliminar archivos si están vacíos
     if os.path.getsize(main_file_path) == 0:
         os.remove(main_file_path)
     if os.path.getsize(obs_file_path) == 0:
         os.remove(obs_file_path)
+        
+    if nan_products:
+        message = "El archivo tiene celdas importantes vacías en los siguientes productos:\n" + "\n".join(nan_products)
+        messagebox.showinfo("Advertencia", message)
 
-
-def writePrecioFijo(df_filtered, codes):
+def writePrecioFijo(df_filtered, codes, productos):
+    nan_products = set()
+    
     prices = df_filtered['Precios fijos'].tolist()
     file_path = f'content/PrecioFijoConPrecio_discount.txt'
+    
     with open(file_path, 'w') as f:
-        # Itera sobre todos los códigos y precios al mismo tiempo
-            for i, (code, price) in enumerate(zip(codes, prices)):
-                if i < len(codes) - 1:  # Verifica si no es la última línea
-                    f.write(f'{code};{price};\n') # Escribe el código y el precio con un salto de línea
+        for i, (code, price, producto) in enumerate(zip(codes, prices, productos)):
+            if pd.notnull(code) and pd.notnull(price):
+                if i < len(codes) - 1:
+                    f.write(f'{code};{price};\n')
                 else:
                     f.write(f'{code};{price};')
+            else:
+                nan_products.add(producto)
     
     # Eliminar archivo si está vacío
     if os.path.getsize(file_path) == 0:
         os.remove(file_path)
+    
+    if nan_products:
+        message = "El archivo tiene celdas importantes vacías en los siguientes productos:\n" + "\n".join(nan_products)
+        messagebox.showinfo("Advertencia", message)
         
         
 def generar_archivos():
-            
     for discount in df['Descuento mostrador'].unique():
         df_filtered = df[df['Descuento mostrador'] == discount]
         codes = df_filtered['Codebar'].tolist()
         observaciones = df_filtered['Observaciones'].tolist()
+        productos = df_filtered['Producto'].tolist()
+        
         if discount == "Precio Fijo":
             # Se crean dos txts, uno solo con los codigos de barra y otro con los codigos y los precios
-            writeNormal(discount, codes, observaciones)
-            writePrecioFijo(df_filtered, codes) 
+            writeNormal(discount, codes, observaciones, productos)
+            writePrecioFijo(df_filtered, codes, productos) 
         else:
-            writeNormal(discount, codes, observaciones)
+            writeNormal(discount, codes, observaciones, productos)
 
 # Función para eliminar archivos de texto
 def eliminar_archivos():
