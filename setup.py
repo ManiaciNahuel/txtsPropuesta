@@ -57,6 +57,10 @@ def mostrar_descuentos():
 def writeNormal(discount, codes, observaciones, productos):
     nan_products = set() 
     
+    # Crear el directorio 'content' si no existe
+    if not os.path.exists('content'):
+        os.makedirs('content')
+    
     main_file_path = f'content/{discount}_discount.txt'
     obs_file_path = f'content/{discount}_observaciones.txt'
     
@@ -90,6 +94,10 @@ def writeNormal(discount, codes, observaciones, productos):
 def writePrecioFijo(df_filtered, codes, productos):
     nan_products = set()
     
+    # Crear el directorio 'content' si no existe
+    if not os.path.exists('content'):
+        os.makedirs('content')
+        
     prices = df_filtered['Precios fijos'].tolist()
     file_path = f'content/PrecioFijoConPrecio_discount.txt'
     
@@ -129,6 +137,10 @@ def generar_archivos():
 
 # Función para eliminar archivos de texto
 def eliminar_archivos():
+    # Crear el directorio 'content' si no existe
+    if not os.path.exists('content'):
+        os.makedirs('content')
+        
     folder_path = "content"  
     files = [f for f in os.listdir(folder_path) if f.endswith(".txt")]
     for file in files:
@@ -156,38 +168,39 @@ marco.pack()
 
 # Establecer el ancho y alto de la ventana principal
 ancho_ventana = 400
-alto_ventana = 370
+alto_ventana = 270
 x_ventana = (root.winfo_screenwidth() // 2) - (ancho_ventana // 2)
 y_ventana = (root.winfo_screenheight() // 2) - (alto_ventana // 2)
 root.geometry(f'{ancho_ventana}x{alto_ventana}+{x_ventana}+{y_ventana}')
 
 # Estilos 
-button_style = {'font': ('Arial', 10), 'bg': 'lightgreen', 'fg': 'black', 'padx': 5, 'pady': 1}
+def get_button_style(bg_color):
+    return {'font': ('Arial', 10), 'bg': bg_color, 'fg': 'black', 'padx': 5, 'pady': 1}
 
 # Crear un marco
 marco = tk.Frame(root, padx=20, pady=20)
 marco.pack()
 
 # Botones para cargar, mostrar, generar y eliminar archivos
-cargar_btn = tk.Button(marco, text="Cargar Excel", command=cargar_excel, **button_style)
+cargar_btn = tk.Button(marco, text="Cargar Excel", command=cargar_excel, **get_button_style('lightgreen'))
 cargar_btn.pack()
 cargar_btn.bind("<Enter>", cambiar_cursor)
 
 generar_espacio()
 
-mostrar_btn = tk.Button(marco, text="Mostrar Descuentos", command=mostrar_descuentos, **button_style)
+mostrar_btn = tk.Button(marco, text="Mostrar Descuentos", command=mostrar_descuentos, **get_button_style('lightblue'))
 mostrar_btn.pack()
 mostrar_btn.bind("<Enter>", cambiar_cursor)
 
 generar_espacio()
 
-generar_btn = tk.Button(marco, text="Generar Archivos de Texto", command=generar_archivos, **button_style)
+generar_btn = tk.Button(marco, text="Generar Archivos de Texto", command=generar_archivos, **get_button_style('lightgreen'))
 generar_btn.pack()
 generar_btn.bind("<Enter>", cambiar_cursor)
 
 generar_espacio()
 
-eliminar_btn = tk.Button(marco, text="Eliminar Archivos de Texto", command=eliminar_archivos, **button_style)
+eliminar_btn = tk.Button(marco, text="Eliminar Archivos de Texto", command=eliminar_archivos, **get_button_style('firebrick2'))
 eliminar_btn.pack()
 eliminar_btn.bind("<Enter>", cambiar_cursor)
 
