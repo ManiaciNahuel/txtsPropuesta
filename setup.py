@@ -70,14 +70,14 @@ def writeNormal(discount, codes, observaciones, productos):
             if pd.notnull(code):
                 if not pd.isnull(observacion):
                     if i < len(codes) - 1:
-                        f_obs.write(f'{code};\n')
+                        f_obs.write(f'{str(int(code))};\n')
                     else:
-                        f_obs.write(f'{code};')
+                        f_obs.write(f'{str(int(code))};')
                 else:
                     if i < len(codes) - 1:
-                        f_main.write(f'{code};\n')
+                        f_main.write(f'{str(int(code))};\n')
                     else:
-                        f_main.write(f'{code};')
+                        f_main.write(f'{str(int(code))};')
             else:
                 nan_products.add(producto)
     
